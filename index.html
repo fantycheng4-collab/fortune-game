@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>爾來了！善惡大判官</title>
+  <style>
+    :root {
+      --bg-color: #120303;
+      --temple-red: #8B0000;
+      --gold-main: #FFD700;
+      --gold-dark: #B8860B;
+      --wood-dark: #2A1508;
+      --wood-light: #5C3A21;
+      --text-light: #FDF6E3;
+      --good-color: #2E8B57;
+      --evil-color: #DC143C;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-light);
+      font-family: "PingFang TC", "Traditional Chinese", "Microsoft JhengHei", serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* 遊戲主容器 */
+    .game-container {
+      width: 100%;
+      max-width: 480px;
+      height: 95vh;
+      max-height: 800px;
+      background: linear-gradient(180deg, #1A0505 0%, #080202 100%);
+      border: 4px solid var(--gold-dark);
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      position: relative;
+    }
+
+    /* 頂部：爾來了匾額 */
+    .plaque {
+      width: 90%;
+      background-color: #050505;
+      border: 3px solid var(--gold-main);
+      outline: 2px solid var(--temple-red);
+      padding: 8px 0;
+      text-align: center;
+      box-shadow: inset 0 0 10px rgba(255, 215, 0, 0.3);
+      margin-bottom: 10px;
+    }
+
+    .plaque-title {
+      color: var(--gold-main);
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: 0.5rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    /* 算盤意象 */
+    .abacus {
+      width: 100%;
+      background: var(--wood-dark);
+      border: 3px solid var(--wood-light);
+      border-radius: 6px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    .abacus-row {
+      display: flex;
+      align-items: center;
+      height: 14px;
+      background: var(--wood-light);
+      position: relative;
+      border-radius: 3px;
+    }
+
+    .abacus-wire {
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background: #888;
+      top: 6px;
+    }
+
+    .beads-group {
+      display: flex;
+      gap: 4px;
+      z-index: 1;
+      transition: transform 0.1s ease;
+    }
+
+    .bead {
+      width: 14px;
+      height: 14px;
+      background: radial-gradient(circle, var(--gold-main) 30%, var(--gold-dark) 100%);
+      border-radius: 50%;
+      box-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+    }
+
+    /* 資訊欄 (時間與分數) */
+    .stats-bar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--gold-main);
+      margin: 10px 0;
+      padding: 0 10px;
+    }
+
+    /* 中央行為標籤區域 */
+    .card-area {
+      flex-grow: 1;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      perspective: 1000px;
+    }
+
+    .action-card {
+      width: 80%;
+      height: 160px;
+      background: radial-gradient(circle, #2A0808 0%, #150303 100%);
+      border: 3px solid var(--gold-dark);
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--text-light);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+      transition: transform 0.2s, border-color 0.2s, background-color 0.2s;
+    }
+
+    /* 動畫效果 */
+    .swipe-right {
+      transform: translateX(200px) rotate(20deg);
+      opacity: 0;
+    }
+
+    .swipe-left {
+      transform: translateX(-200px) rotate(-20deg);
+      opacity: 0;
+    }
+
+    .flash-good {
+      border-color: var(--good-color) !important;
+      box-shadow: 0 0 20px var(--good-color) !important;
+    }
+
+    .flash-evil {
+      border-color: var(--evil-color) !important;
+      box-shadow: 0 0 20px var(--evil-color) !important;
+    }
+
+    /* 操作按鈕區 */
+    .controls {
+      width: 100%;
+      display: flex;
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 16px 0;
+      font-size: 1.5rem;
+      font-weight: bold;
+      border: 2px solid var(--gold-main);
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-light);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: transform 0.1s, filter 0.2s;
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+    }
+
+    .btn-good {
+      background: linear-gradient(135deg, #1E4D2B 0%, #0D2615 100%);
+    }
+
+    .btn-evil {
+      background: linear-gradient(135deg, #7A1C1C 0%, #3B0A0A 100%);
+    }
+
+    .btn-hint {
+      font-size: 0.8rem;
+      color: var(--gold-main);
+      opacity: 0.8;
+    }
+
+    /* 彈出畫面 (開始/結算) */
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 2, 2, 0.95);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      text-align: center;
+      z-index: 10;
+      border-radius: 8px;
+    }
+
+    .overlay h2 {
+      font-size: 2.2rem;
+      color: var(--gold-main);
+      margin-bottom: 12px;
+    }
+
+    .overlay p {
+      font-size: 1.1rem;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .start-btn {
+      padding: 12px 36px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      background: var(--temple-red);
+      color: var(--gold-main);
+      border: 2px solid var(--gold-main);
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    }
+
+    .start-btn:hover {
+      filter: brightness(1.2);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-container">
+    <!-- 爾來了匾額 -->
+    <div class="plaque">
+      <div class="plaque-title">爾來了</div>
+    </div>
+
+    <!-- 算盤意象 -->
+    <div class="abacus">
+      <div class="abacus-row">
+        <div class="abacus-wire"></div>
+        <div class="beads-group" id="beads-1">
+          <div class="bead"></div><div class="bead"></div><div class="bead"></div>
+        </div>
+      </div>
+      <div class="abacus-row">
+        <div class="abacus-wire"></div>
+        <div class="beads-group" id="beads-2">
+          <div class="bead"></div><div class="bead"></div><div class="bead"></div><div class="bead"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 狀態欄 -->
+    <div class="stats-bar">
+      <div>倒數：<span id="time-display">60</span> 秒</div>
+      <div>功過得分：<span id="score-display">0</span></div>
+    </div>
+
+    <!-- 行為卡片區 -->
+    <div class="card-area">
+      <div class="action-card" id="action-card">準備判定...</div>
+    </div>
+
+    <!-- 操作按鈕區 -->
+    <div class="controls">
+      <button class="btn btn-good" id="good-btn">
+        <span>⬅️ 善</span>
+        <span class="btn-hint">[ 按 Left 鍵 ]</span>
+      </button>
+      <button class="btn btn-evil" id="evil-btn">
+        <span>惡 ➡️</span>
+        <span class="btn-hint">[ 按 Right 鍵 ]</span>
+      </button>
+    </div>
+
+    <!-- 開始/結算 覆蓋畫面 -->
+    <div class="overlay" id="overlay">
+      <h2 id="overlay-title">爾來了！善惡大判官</h2>
+      <p id="overlay-desc">
+        世人一舉一動，城隍爺皆有明細。<br>
+        限時 60 秒，請迅速判斷世間行為之「善」與「惡」。<br><br>
+        <b>操作說明：</b><br>
+        手機直接點擊下方按鈕，或使用鍵盤 <b>⬅️ 善</b> / <b>惡 ➡️</b> 鍵。
+      </p>
+      <button class="start-btn" id="start-btn">開始判官職責</button>
+    </div>
+  </div>
+
+  <script>
+    // 善惡行為題庫
+    const actionDatabase = [
+      // 善 (type: 'good')
+      { text: "拾金不昧", type: "good" },
+      { text: "孝順父母", type: "good" },
+      { text: "扶老人過馬路", type: "good" },
+      { text: "主動捐血救人", type: "good" },
+      { text: "領養流浪動物", type: "good" },
+      { text: "默默行善不求回報", type: "good" },
+      { text: "協助災區救援", type: "good" },
+      { text: "誠實納稅", type: "good" },
+      { text: "檢舉貪腐違法", type: "good" },
+      { text: "維護公共環境清潔", type: "good" },
+      
+      // 惡 (type: 'evil')
+      { text: "路怒撞人", type: "evil" },
+      { text: "公務貪污", type: "evil" },
+      { text: "造謠中傷他人", type: "evil" },
+      { text: "酒後駕車", type: "evil" },
+      { text: "虐待小動物", type: "evil" },
+      { text: "詐騙老人家積蓄", type: "evil" },
+      { text: "高空拋擲垃圾", type: "evil" },
+      { text: "占有他人遺失物", type: "evil" },
+      { text: "霸凌弱小同學", type: "evil" },
+      { text: "販售過期黑心食品", type: "evil" }
+    ];
+
+    // 遊戲狀態變數
+    let score = 0;
+    let timeLeft = 60;
+    let timer = null;
+    let currentAction = null;
+    let isPlaying = false;
+
+    // DOM 元素
+    const scoreDisplay = document.getElementById('score-display');
+    const timeDisplay = document.getElementById('time-display');
+    const actionCard = document.getElementById('action-card');
+    const goodBtn = document.getElementById('good-btn');
+    const evilBtn = document.getElementById('evil-btn');
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlayDesc = document.getElementById('overlay-desc');
+    const startBtn = document.getElementById('start-btn');
+    const beads1 = document.getElementById('beads-1');
+    const beads2 = document.getElementById('beads-2');
+
+    // Web Audio API 音效生成器 (算盤答答聲)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playAbacusSound(isCorrect) {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      osc.type = 'triangle';
+      
+      if (isCorrect) {
+        // 正確：清脆高音撞擊聲
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+      } else {
+        // 錯誤：沉悶低音沉重聲
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+      }
+      
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      
+      osc.start();
+      osc.stop(audioCtx.currentTime + (isCorrect ? 0.08 : 0.15));
+    }
+
+    // 隨機取出下一題
+    function nextQuestion() {
+      const randomIndex = Math.floor(Math.random() * actionDatabase.length);
+      currentAction = actionDatabase[randomIndex];
+      actionCard.textContent = currentAction.text;
+      
+      // 重置卡片樣式與動畫
+      actionCard.className = 'action-card';
+    }
+
+    // 晃動算盤珠視覺效果
+    function animateAbacus() {
+      const shift1 = (Math.random() - 0.5) * 40;
+      const shift2 = (Math.random() - 0.5) * 40;
+      beads1.style.transform = `translateX(${shift1}px)`;
+      beads2.style.transform = `translateX(${shift2}px)`;
+    }
+
+    // 玩家進行判定
+    function judge(choice) {
+      if (!isPlaying) return;
+
+      const isCorrect = (choice === currentAction.type);
+      
+      // 音效與分數變更
+      playAbacusSound(isCorrect);
+      animateAbacus();
+
+      if (isCorrect) {
+        score += 100;
+        actionCard.classList.add(choice === 'good' ? 'swipe-left' : 'swipe-right');
+        actionCard.classList.add('flash-good');
+      } else {
+        score = Math.max(0, score - 50); // 答錯扣 50 分，最低 0 分
+        actionCard.classList.add('flash-evil');
+      }
+
+      scoreDisplay.textContent = score;
+
+      // 延遲刷新下一題
+      setTimeout(() => {
+        nextQuestion();
+      }, 150);
+    }
+
+    // 開始遊戲
+    function startGame() {
+      score = 0;
+      timeLeft = 60;
+      isPlaying = true;
+      scoreDisplay.textContent = score;
+      timeDisplay.textContent = timeLeft;
+
+      overlay.classList.add('hidden');
+      nextQuestion();
+
+      timer = setInterval(() => {
+        timeLeft--;
+        timeDisplay.textContent = timeLeft;
+
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    // 結束遊戲與城隍爺評語
+    function endGame() {
+      clearInterval(timer);
+      isPlaying = false;
+
+      let comment = "";
+      if (score >= 2500) {
+        comment = "【光明磊落】<br>善惡分明，心如明鏡！城隍爺賜你福德圓滿。";
+      } else if (score >= 1200) {
+        comment = "【尚可改進】<br>世事紛擾，偶有失察。多行善事，積德累功。";
+      } else {
+        comment = "【罪加一等】<br>顛倒黑白，是非不分！還不快去城隍爺前懺悔！";
+      }
+
+      overlayTitle.textContent = "審判結束";
+      overlayDesc.innerHTML = `你的最終功過得分為：<b style="color: var(--gold-main); font-size: 1.5rem;">${score}</b> 分<br><br><b>城隍爺評語：</b><br>${comment}`;
+      startBtn.textContent = "再次接受審判";
+      overlay.classList.remove('hidden');
+    }
+
+    // 事件監聽：按鈕點擊
+    goodBtn.addEventListener('click', () => judge('good'));
+    evilBtn.addEventListener('click', () => judge('evil'));
+    startBtn.addEventListener('click', startGame);
+
+    // 事件監聽：鍵盤左右鍵
+    window.addEventListener('keydown', (e) => {
+      if (!isPlaying) return;
+      if (e.key === 'ArrowLeft') {
+        judge('good');
+      } else if (e.key === 'ArrowRight') {
+        judge('evil');
+      }
+    });
+  </script>
+</body>
+</html>
