@@ -359,9 +359,9 @@
   </div>
 
   <script>
-    // 擴充版善惡行為題庫
+    // 擴充版善惡行為題庫 (善惡各 20 項)
     const rawActionDatabase = [
-      // 善 (type: 'good')
+      // 善 (type: 'good') - 共 20 項
       { text: "拾金不昧送到警局", type: "good" },
       { text: "孝順父母尊重長輩", type: "good" },
       { text: "主動扶老人過馬路", type: "good" },
@@ -382,14 +382,10 @@
       { text: "吃完便當做好垃圾分類", type: "good" },
       { text: "出門自備環保餐具救地球", type: "good" },
       { text: "檢舉公務貪腐違法行為", type: "good" },
-      { text: "颱風天協助疏通水溝蓋", type: "good" },
-      { text: "主動陪伴獨居老人聊天", type: "good" },
-      { text: "義務擔任社區導護志工", type: "good" },
-      { text: "鼓勵挫折的同伴重拾信心", type: "good" },
-      { text: "撿到證件主動寄還失主", type: "good" },
 
-      // 惡 (type: 'evil')
+      // 惡 (type: 'evil') - 共 20 項
       { text: "抄襲剽竊他人資料寫書", type: "evil" },
+      { text: "將他人的創意據為己有還口出惡言", type: "evil" },
       { text: "路怒逼車甚至撞人", type: "evil" },
       { text: "利用職權公務貪污", type: "evil" },
       { text: "網路上造謠中傷他人", type: "evil" },
@@ -406,14 +402,8 @@
       { text: "電影院看電影大聲講電話", type: "evil" },
       { text: "佔用身障專用停車位", type: "evil" },
       { text: "在公共場所隨地吐痰抽菸", type: "evil" },
-      { text: "借錢不還還封鎖對方", type: "evil" },
       { text: "惡意潑漆破壞古蹟文物", type: "evil" },
-      { text: "半夜改管飆車噪音擾民", type: "evil" },
-      { text: "將別人的創意據為己有還口出惡言", type: "evil" },
-      { text: "偷竊廟宇賽錢箱香油錢", type: "evil" },
-      { text: "造假檢驗報告欺騙消費者", type: "evil" },
-      { text: "故意踩踏農夫辛勤作物的農田", type: "evil" },
-      { text: "隨意撥打緊急救護電話鬧事", type: "evil" }
+      { text: "偷竊廟宇香油錢", type: "evil" }
     ];
 
     // 遊戲狀態變數
@@ -450,7 +440,7 @@
 
     // 嚴格不重複抽題機制
     function nextQuestion() {
-      // 過濾掉最近出現過的題目 (最多維持 15 題記憶)
+      // 過濾掉最近出現過的題目 (最多維持 12 題記憶)
       let availableQuestions = rawActionDatabase.filter(q => !history.includes(q.text));
 
       // 若防重記憶庫快滿了，釋放最舊的記憶
@@ -465,8 +455,8 @@
 
       // 寫入歷史紀錄
       history.push(currentAction.text);
-      if (history.length > 15) {
-        history.shift(); // 只記住最近 15 題
+      if (history.length > 12) {
+        history.shift(); // 只記住最近 12 題
       }
 
       actionCard.textContent = currentAction.text;
