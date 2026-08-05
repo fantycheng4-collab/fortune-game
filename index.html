@@ -360,7 +360,7 @@
 
   <script>
     // 擴充版善惡行為題庫
-    const actionDatabase = [
+    const rawActionDatabase = [
       // 善 (type: 'good')
       { text: "拾金不昧送到警局", type: "good" },
       { text: "孝順父母尊重長輩", type: "good" },
@@ -372,7 +372,7 @@
       { text: "誠實納稅不逃漏稅", type: "good" },
       { text: "主動維護社區清潔", type: "good" },
       { text: "搭乘公車主動讓座", type: "good" },
-      { text: "下雨天幫忙收衣服", type: "good" },
+      { text: "下雨天幫鄰居收衣服", type: "good" },
       { text: "開車轉彎主動打方向燈", type: "good" },
       { text: "買東西多找錢主動退還", type: "good" },
       { text: "幫後方來人扶住電梯門", type: "good" },
@@ -382,6 +382,11 @@
       { text: "吃完便當做好垃圾分類", type: "good" },
       { text: "出門自備環保餐具救地球", type: "good" },
       { text: "檢舉公務貪腐違法行為", type: "good" },
+      { text: "颱風天協助疏通水溝蓋", type: "good" },
+      { text: "主動陪伴獨居老人聊天", type: "good" },
+      { text: "義務擔任社區導護志工", type: "good" },
+      { text: "鼓勵挫折的同伴重拾信心", type: "good" },
+      { text: "撿到證件主動寄還失主", type: "good" },
 
       // 惡 (type: 'evil')
       { text: "抄襲剽竊他人資料寫書", type: "evil" },
@@ -404,7 +409,11 @@
       { text: "借錢不還還封鎖對方", type: "evil" },
       { text: "惡意潑漆破壞古蹟文物", type: "evil" },
       { text: "半夜改管飆車噪音擾民", type: "evil" },
-      { text: "把別人的靈感據為己有還口出惡言", type: "evil" }
+      { text: "將別人的創意據為己有還口出惡言", type: "evil" },
+      { text: "偷竊廟宇賽錢箱香油錢", type: "evil" },
+      { text: "造假檢驗報告欺騙消費者", type: "evil" },
+      { text: "故意踩踏農夫辛勤作物的農田", type: "evil" },
+      { text: "隨意撥打緊急救護電話鬧事", type: "evil" }
     ];
 
     // 遊戲狀態變數
@@ -413,6 +422,7 @@
     let timer = null;
     let currentAction = null;
     let isPlaying = false;
+    let questionPool = []; // 題目抽牌池
 
     // DOM 元素
     const scoreDisplay = document.getElementById('score-display');
@@ -428,42 +438,75 @@
     const beads2 = document.getElementById('beads-2');
     const abacusBox = document.getElementById('abacus-box');
 
-    // Web Audio API 音效生成器 (算盤撞擊聲)
+    // Web Audio API 逼真算盤木頭撞擊聲
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
     function playAbacusSound(isCorrect) {
       if (audioCtx.state === 'suspended') {
         audioCtx.resume();
       }
-      
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      
-      osc.type = 'triangle';
-      
+
+      const now = audioCtx.currentTime;
+
       if (isCorrect) {
-        osc.frequency.setValueAtTime(850, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(420, audioCtx.currentTime + 0.08);
-        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc1.type = 'sine';
+        osc2.type = 'triangle';
+
+        osc1.frequency.setValueAtTime(1200, now);
+        osc1.frequency.exponentialRampToValueAtTime(300, now + 0.04);
+
+        osc2.frequency.setValueAtTime(2400, now);
+        osc2.frequency.exponentialRampToValueAtTime(600, now + 0.03);
+
+        gain.gain.setValueAtTime(0.7, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 0.05);
+        osc2.stop(now + 0.05);
       } else {
-        osc.frequency.setValueAtTime(140, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.18);
-        gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.18);
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(160, now);
+        osc.frequency.linearRampToValueAtTime(60, now + 0.12);
+
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.12);
       }
-      
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      
-      osc.start();
-      osc.stop(audioCtx.currentTime + (isCorrect ? 0.08 : 0.18));
     }
 
-    // 隨機取出下一題
+    // 洗牌演算法 (Fisher-Yates Shuffle)
+    function shufflePool() {
+      questionPool = [...rawActionDatabase];
+      for (let i = questionPool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [questionPool[i], questionPool[j]] = [questionPool[j], questionPool[i]];
+      }
+    }
+
+    // 抽下一題 (不重複抽取)
     function nextQuestion() {
-      const randomIndex = Math.floor(Math.random() * actionDatabase.length);
-      currentAction = actionDatabase[randomIndex];
+      if (questionPool.length === 0) {
+        shufflePool();
+      }
+      currentAction = questionPool.pop();
       actionCard.textContent = currentAction.text;
       actionCard.className = 'action-card';
     }
@@ -480,7 +523,7 @@
       abacusBox.classList.add('bead-shake');
     }
 
-    // 玩家判定 logic
+    // 玩家判定邏輯
     function judge(choice) {
       if (!isPlaying) return;
 
@@ -513,6 +556,7 @@
       scoreDisplay.textContent = score;
       timeDisplay.textContent = timeLeft;
 
+      shufflePool();
       overlay.classList.add('hidden');
       nextQuestion();
 
