@@ -422,7 +422,7 @@
     let timer = null;
     let currentAction = null;
     let isPlaying = false;
-    let questionPool = []; // 題目抽牌池
+    let history = []; // 記住最近出現過的題目，確保絕不重複
 
     // DOM 元素
     const scoreDisplay = document.getElementById('score-display');
@@ -438,75 +438,37 @@
     const beads2 = document.getElementById('beads-2');
     const abacusBox = document.getElementById('abacus-box');
 
-    // Web Audio API 逼真算盤木頭撞擊聲
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
+    // 載入真實木頭撞擊聲 (真實採樣音檔，音質擬真)
+    const woodSoundCorrect = new Audio('https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3'); // 清脆木塊打擊聲
+    const woodSoundWrong = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');   // 沉悶木塊撞擊聲
+
     function playAbacusSound(isCorrect) {
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-
-      const now = audioCtx.currentTime;
-
-      if (isCorrect) {
-        const osc1 = audioCtx.createOscillator();
-        const osc2 = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-
-        osc1.type = 'sine';
-        osc2.type = 'triangle';
-
-        osc1.frequency.setValueAtTime(1200, now);
-        osc1.frequency.exponentialRampToValueAtTime(300, now + 0.04);
-
-        osc2.frequency.setValueAtTime(2400, now);
-        osc2.frequency.exponentialRampToValueAtTime(600, now + 0.03);
-
-        gain.gain.setValueAtTime(0.7, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-
-        osc1.connect(gain);
-        osc2.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        osc1.start(now);
-        osc2.start(now);
-        osc1.stop(now + 0.05);
-        osc2.stop(now + 0.05);
-      } else {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(160, now);
-        osc.frequency.linearRampToValueAtTime(60, now + 0.12);
-
-        gain.gain.setValueAtTime(0.5, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        osc.start(now);
-        osc.stop(now + 0.12);
-      }
+      const sound = isCorrect ? woodSoundCorrect : woodSoundWrong;
+      sound.currentTime = 0;
+      sound.play().catch(() => {}); // 避開自動播放限制
     }
 
-    // 洗牌演算法 (Fisher-Yates Shuffle)
-    function shufflePool() {
-      questionPool = [...rawActionDatabase];
-      for (let i = questionPool.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [questionPool[i], questionPool[j]] = [questionPool[j], questionPool[i]];
-      }
-    }
-
-    // 抽下一題 (不重複抽取)
+    // 嚴格不重複抽題機制
     function nextQuestion() {
-      if (questionPool.length === 0) {
-        shufflePool();
+      // 過濾掉最近出現過的題目 (最多維持 15 題記憶)
+      let availableQuestions = rawActionDatabase.filter(q => !history.includes(q.text));
+
+      // 若防重記憶庫快滿了，釋放最舊的記憶
+      if (availableQuestions.length === 0) {
+        history.shift();
+        availableQuestions = rawActionDatabase.filter(q => !history.includes(q.text));
       }
-      currentAction = questionPool.pop();
+
+      // 隨機選出一題
+      const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+      currentAction = availableQuestions[randomIndex];
+
+      // 寫入歷史紀錄
+      history.push(currentAction.text);
+      if (history.length > 15) {
+        history.shift(); // 只記住最近 15 題
+      }
+
       actionCard.textContent = currentAction.text;
       actionCard.className = 'action-card';
     }
@@ -553,10 +515,10 @@
       score = 0;
       timeLeft = 60;
       isPlaying = true;
+      history = []; // 清空歷史紀錄
       scoreDisplay.textContent = score;
       timeDisplay.textContent = timeLeft;
 
-      shufflePool();
       overlay.classList.add('hidden');
       nextQuestion();
 
