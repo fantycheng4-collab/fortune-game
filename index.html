@@ -40,7 +40,7 @@
       width: 100%;
       max-width: 480px;
       height: 95vh;
-      max-height: 800px;
+      max-height: 820px;
       background: linear-gradient(180deg, #1A0505 0%, #080202 100%);
       border: 4px solid var(--gold-dark);
       border-radius: 12px;
@@ -62,60 +62,73 @@
       padding: 8px 0;
       text-align: center;
       box-shadow: inset 0 0 10px rgba(255, 215, 0, 0.3);
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .plaque-title {
       color: var(--gold-main);
-      font-size: 2rem;
+      font-size: 2.2rem;
       font-weight: 900;
-      letter-spacing: 0.5rem;
+      letter-spacing: 0.6rem;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     }
 
-    /* 算盤意象 */
+    /* 加大版大算盤意象 */
     .abacus {
       width: 100%;
       background: var(--wood-dark);
-      border: 3px solid var(--wood-light);
-      border-radius: 6px;
-      padding: 8px;
+      border: 4px solid var(--wood-light);
+      border-radius: 8px;
+      padding: 12px 10px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      gap: 12px;
+      box-shadow: inset 0 0 10px #000, 0 4px 10px rgba(0,0,0,0.5);
     }
 
     .abacus-row {
       display: flex;
       align-items: center;
-      height: 14px;
+      height: 24px;
       background: var(--wood-light);
       position: relative;
-      border-radius: 3px;
+      border-radius: 4px;
+      overflow: hidden;
     }
 
     .abacus-wire {
       position: absolute;
       width: 100%;
-      height: 2px;
-      background: #888;
-      top: 6px;
+      height: 3px;
+      background: #AAA;
+      top: 10.5px;
     }
 
     .beads-group {
       display: flex;
-      gap: 4px;
+      gap: 8px;
       z-index: 1;
-      transition: transform 0.1s ease;
+      transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
+    /* 加大顆的算盤珠 */
     .bead {
-      width: 14px;
-      height: 14px;
-      background: radial-gradient(circle, var(--gold-main) 30%, var(--gold-dark) 100%);
+      width: 22px;
+      height: 22px;
+      background: radial-gradient(circle at 30% 30%, #FFE57F 0%, var(--gold-main) 40%, var(--gold-dark) 100%);
       border-radius: 50%;
-      box-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.8), inset -1px -1px 2px rgba(0,0,0,0.5);
+    }
+
+    /* 算盤珠晃動動畫 class */
+    .bead-shake {
+      animation: abacusBounce 0.2s ease-in-out;
+    }
+
+    @keyframes abacusBounce {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15) translateY(-2px); }
+      100% { transform: scale(1); }
     }
 
     /* 資訊欄 (時間與分數) */
@@ -123,10 +136,10 @@
       width: 100%;
       display: flex;
       justify-content: space-between;
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       font-weight: bold;
       color: var(--gold-main);
-      margin: 10px 0;
+      margin: 8px 0;
       padding: 0 10px;
     }
 
@@ -142,7 +155,7 @@
     }
 
     .action-card {
-      width: 80%;
+      width: 85%;
       height: 160px;
       background: radial-gradient(circle, #2A0808 0%, #150303 100%);
       border: 3px solid var(--gold-dark);
@@ -156,28 +169,27 @@
       font-weight: bold;
       color: var(--text-light);
       box-shadow: 0 10px 20px rgba(0,0,0,0.6);
-      transition: transform 0.2s, border-color 0.2s, background-color 0.2s;
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
     }
 
-    /* 動畫效果 */
     .swipe-right {
-      transform: translateX(200px) rotate(20deg);
+      transform: translateX(180px) rotate(15deg);
       opacity: 0;
     }
 
     .swipe-left {
-      transform: translateX(-200px) rotate(-20deg);
+      transform: translateX(-180px) rotate(-15deg);
       opacity: 0;
     }
 
     .flash-good {
       border-color: var(--good-color) !important;
-      box-shadow: 0 0 20px var(--good-color) !important;
+      box-shadow: 0 0 25px var(--good-color) !important;
     }
 
     .flash-evil {
       border-color: var(--evil-color) !important;
-      box-shadow: 0 0 20px var(--evil-color) !important;
+      box-shadow: 0 0 25px var(--evil-color) !important;
     }
 
     /* 操作按鈕區 */
@@ -222,6 +234,15 @@
       opacity: 0.8;
     }
 
+    /* 頁尾落款 */
+    .footer-credits {
+      font-size: 0.85rem;
+      color: var(--gold-dark);
+      margin-top: 8px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
     /* 彈出畫面 (開始/結算) */
     .overlay {
       position: absolute;
@@ -229,7 +250,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(10, 2, 2, 0.95);
+      background: rgba(10, 2, 2, 0.96);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -247,7 +268,7 @@
     }
 
     .overlay p {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       margin-bottom: 20px;
       line-height: 1.6;
     }
@@ -281,18 +302,18 @@
       <div class="plaque-title">爾來了</div>
     </div>
 
-    <!-- 算盤意象 -->
-    <div class="abacus">
+    <!-- 加大版大算盤意象 -->
+    <div class="abacus" id="abacus-box">
       <div class="abacus-row">
         <div class="abacus-wire"></div>
         <div class="beads-group" id="beads-1">
-          <div class="bead"></div><div class="bead"></div><div class="bead"></div>
+          <div class="bead"></div><div class="bead"></div><div class="bead"></div><div class="bead"></div>
         </div>
       </div>
       <div class="abacus-row">
         <div class="abacus-wire"></div>
         <div class="beads-group" id="beads-2">
-          <div class="bead"></div><div class="bead"></div><div class="bead"></div><div class="bead"></div>
+          <div class="bead"></div><div class="bead"></div><div class="bead"></div><div class="bead"></div><div class="bead"></div>
         </div>
       </div>
     </div>
@@ -320,45 +341,70 @@
       </button>
     </div>
 
+    <!-- 底部製作人標示 -->
+    <div class="footer-credits">製作：臺灣府城隍廟志工小V</div>
+
     <!-- 開始/結算 覆蓋畫面 -->
     <div class="overlay" id="overlay">
       <h2 id="overlay-title">爾來了！善惡大判官</h2>
       <p id="overlay-desc">
-        世人一舉一動，城隍爺皆有明細。<br>
+        世人一舉一動，城隍爺大算盤皆有明細。<br>
         限時 60 秒，請迅速判斷世間行為之「善」與「惡」。<br><br>
         <b>操作說明：</b><br>
-        手機直接點擊下方按鈕，或使用鍵盤 <b>⬅️ 善</b> / <b>惡 ➡️</b> 鍵。
+        手機點擊下方按鈕，或使用鍵盤 <b>⬅️ 善</b> / <b>惡 ➡️</b> 鍵。
       </p>
       <button class="start-btn" id="start-btn">開始判官職責</button>
+      <div class="footer-credits" style="margin-top: 20px; color: var(--gold-main);">製作：臺灣府城隍廟志工小V</div>
     </div>
   </div>
 
   <script>
-    // 善惡行為題庫
+    // 擴充版善惡行為題庫
     const actionDatabase = [
       // 善 (type: 'good')
-      { text: "拾金不昧", type: "good" },
-      { text: "孝順父母", type: "good" },
-      { text: "扶老人過馬路", type: "good" },
-      { text: "主動捐血救人", type: "good" },
-      { text: "領養流浪動物", type: "good" },
-      { text: "默默行善不求回報", type: "good" },
-      { text: "協助災區救援", type: "good" },
-      { text: "誠實納稅", type: "good" },
-      { text: "檢舉貪腐違法", type: "good" },
-      { text: "維護公共環境清潔", type: "good" },
-      
+      { text: "拾金不昧送到警局", type: "good" },
+      { text: "孝順父母尊重長輩", type: "good" },
+      { text: "主動扶老人過馬路", type: "good" },
+      { text: "定期捐血救人一命", type: "good" },
+      { text: "領養替代購買寵物", type: "good" },
+      { text: "默默捐款不求回報", type: "good" },
+      { text: "熱心協助災區救援", type: "good" },
+      { text: "誠實納稅不逃漏稅", type: "good" },
+      { text: "主動維護社區清潔", type: "good" },
+      { text: "搭乘公車主動讓座", type: "good" },
+      { text: "下雨天幫忙收衣服", type: "good" },
+      { text: "開車轉彎主動打方向燈", type: "good" },
+      { text: "買東西多找錢主動退還", type: "good" },
+      { text: "幫後方來人扶住電梯門", type: "good" },
+      { text: "看到路邊浪浪幫忙通報救援", type: "good" },
+      { text: "在圖書館保持安靜不打擾人", type: "good" },
+      { text: "主動幫忙照顧生病的朋友", type: "good" },
+      { text: "吃完便當做好垃圾分類", type: "good" },
+      { text: "出門自備環保餐具救地球", type: "good" },
+      { text: "檢舉公務貪腐違法行為", type: "good" },
+
       // 惡 (type: 'evil')
-      { text: "路怒撞人", type: "evil" },
-      { text: "公務貪污", type: "evil" },
-      { text: "造謠中傷他人", type: "evil" },
-      { text: "酒後駕車", type: "evil" },
-      { text: "虐待小動物", type: "evil" },
-      { text: "詐騙老人家積蓄", type: "evil" },
-      { text: "高空拋擲垃圾", type: "evil" },
-      { text: "占有他人遺失物", type: "evil" },
-      { text: "霸凌弱小同學", type: "evil" },
-      { text: "販售過期黑心食品", type: "evil" }
+      { text: "抄襲剽竊他人資料寫書", type: "evil" },
+      { text: "路怒逼車甚至撞人", type: "evil" },
+      { text: "利用職權公務貪污", type: "evil" },
+      { text: "網路上造謠中傷他人", type: "evil" },
+      { text: "酒後駕駛危險上路", type: "evil" },
+      { text: "虐待棄養無辜小動物", type: "evil" },
+      { text: "詐騙老人家積蓄血汗錢", type: "evil" },
+      { text: "高空拋擲玻璃瓶與垃圾", type: "evil" },
+      { text: "侵占他人遺失的手機", type: "evil" },
+      { text: "職場與校園言語霸凌", type: "evil" },
+      { text: "販售過期黑心毒食品", type: "evil" },
+      { text: "買夜市雞排插隊還罵人", type: "evil" },
+      { text: "把垃圾直接扔進別人車廂", type: "evil" },
+      { text: "開遠光燈閃瞎對向車道", type: "evil" },
+      { text: "電影院看電影大聲講電話", type: "evil" },
+      { text: "佔用身障專用停車位", type: "evil" },
+      { text: "在公共場所隨地吐痰抽菸", type: "evil" },
+      { text: "借錢不還還封鎖對方", type: "evil" },
+      { text: "惡意潑漆破壞古蹟文物", type: "evil" },
+      { text: "半夜改管飆車噪音擾民", type: "evil" },
+      { text: "把別人的靈感據為己有還口出惡言", type: "evil" }
     ];
 
     // 遊戲狀態變數
@@ -380,8 +426,9 @@
     const startBtn = document.getElementById('start-btn');
     const beads1 = document.getElementById('beads-1');
     const beads2 = document.getElementById('beads-2');
+    const abacusBox = document.getElementById('abacus-box');
 
-    // Web Audio API 音效生成器 (算盤答答聲)
+    // Web Audio API 音效生成器 (算盤撞擊聲)
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
     function playAbacusSound(isCorrect) {
@@ -395,24 +442,22 @@
       osc.type = 'triangle';
       
       if (isCorrect) {
-        // 正確：清脆高音撞擊聲
-        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.08);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(850, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(420, audioCtx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
       } else {
-        // 錯誤：沉悶低音沉重聲
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+        osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.18);
+        gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.18);
       }
       
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       
       osc.start();
-      osc.stop(audioCtx.currentTime + (isCorrect ? 0.08 : 0.15));
+      osc.stop(audioCtx.currentTime + (isCorrect ? 0.08 : 0.18));
     }
 
     // 隨機取出下一題
@@ -420,26 +465,27 @@
       const randomIndex = Math.floor(Math.random() * actionDatabase.length);
       currentAction = actionDatabase[randomIndex];
       actionCard.textContent = currentAction.text;
-      
-      // 重置卡片樣式與動畫
       actionCard.className = 'action-card';
     }
 
-    // 晃動算盤珠視覺效果
+    // 算盤珠位移與晃動動畫
     function animateAbacus() {
-      const shift1 = (Math.random() - 0.5) * 40;
-      const shift2 = (Math.random() - 0.5) * 40;
+      const shift1 = (Math.random() - 0.5) * 80;
+      const shift2 = (Math.random() - 0.5) * 80;
       beads1.style.transform = `translateX(${shift1}px)`;
       beads2.style.transform = `translateX(${shift2}px)`;
+
+      abacusBox.classList.remove('bead-shake');
+      void abacusBox.offsetWidth;
+      abacusBox.classList.add('bead-shake');
     }
 
-    // 玩家進行判定
+    // 玩家判定 logic
     function judge(choice) {
       if (!isPlaying) return;
 
       const isCorrect = (choice === currentAction.type);
       
-      // 音效與分數變更
       playAbacusSound(isCorrect);
       animateAbacus();
 
@@ -448,16 +494,15 @@
         actionCard.classList.add(choice === 'good' ? 'swipe-left' : 'swipe-right');
         actionCard.classList.add('flash-good');
       } else {
-        score = Math.max(0, score - 50); // 答錯扣 50 分，最低 0 分
+        score = Math.max(0, score - 50);
         actionCard.classList.add('flash-evil');
       }
 
       scoreDisplay.textContent = score;
 
-      // 延遲刷新下一題
       setTimeout(() => {
         nextQuestion();
-      }, 150);
+      }, 140);
     }
 
     // 開始遊戲
@@ -481,32 +526,37 @@
       }, 1000);
     }
 
-    // 結束遊戲與城隍爺評語
+    // 結束遊戲與評語
     function endGame() {
       clearInterval(timer);
       isPlaying = false;
 
       let comment = "";
-      if (score >= 2500) {
-        comment = "【光明磊落】<br>善惡分明，心如明鏡！城隍爺賜你福德圓滿。";
-      } else if (score >= 1200) {
-        comment = "【尚可改進】<br>世事紛擾，偶有失察。多行善事，積德累功。";
+      if (score >= 3500) {
+        comment = "【超凡入聖】<br>火眼金睛，善惡極速判決！城隍爺考慮請你當首席大判官！";
+      } else if (score >= 2500) {
+        comment = "【光明磊落】<br>善惡分明，心如明鏡！城隍爺賜你福德圓滿、平安大吉。";
+      } else if (score >= 1800) {
+        comment = "【積善之家】<br>大體精準，明辨是非！多行善事，子孫必有餘慶。";
+      } else if (score >= 1000) {
+        comment = "【尚可改進】<br>世事紛擾，偶有失察。回去多讀聖賢書，下回再試！";
+      } else if (score >= 400) {
+        comment = "【糊塗判官】<br>黑白不分，糊里糊塗！差點把善人當惡人給判了！";
       } else {
-        comment = "【罪加一等】<br>顛倒黑白，是非不分！還不快去城隍爺前懺悔！";
+        comment = "【無間地獄】<br>顛倒黑白，罪加一等！速速去城隍爺面前跪著懺悔！";
       }
 
       overlayTitle.textContent = "審判結束";
-      overlayDesc.innerHTML = `你的最終功過得分為：<b style="color: var(--gold-main); font-size: 1.5rem;">${score}</b> 分<br><br><b>城隍爺評語：</b><br>${comment}`;
+      overlayDesc.innerHTML = `你的最終功過得分為：<b style="color: var(--gold-main); font-size: 1.6rem;">${score}</b> 分<br><br><b>城隍爺評語：</b><br>${comment}`;
       startBtn.textContent = "再次接受審判";
       overlay.classList.remove('hidden');
     }
 
-    // 事件監聽：按鈕點擊
+    // 事件監聽
     goodBtn.addEventListener('click', () => judge('good'));
     evilBtn.addEventListener('click', () => judge('evil'));
     startBtn.addEventListener('click', startGame);
 
-    // 事件監聽：鍵盤左右鍵
     window.addEventListener('keydown', (e) => {
       if (!isPlaying) return;
       if (e.key === 'ArrowLeft') {
