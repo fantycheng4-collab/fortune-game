@@ -367,7 +367,7 @@
 
   <script>
     const rawActionDatabase = [
-      // 善 (type: 'good') - 共 20 項
+      // 善 (type: 'good')
       { text: "拾金不昧送到警局", type: "good" },
       { text: "孝順父母尊重長輩", type: "good" },
       { text: "主動扶老人過馬路", type: "good" },
@@ -389,8 +389,12 @@
       { text: "出門自備環保餐具救地球", type: "good" },
       { text: "檢舉公務貪腐違法行為", type: "good" },
 
-      // 惡 (type: 'evil') - 共 20 項
+      // 惡 (type: 'evil') - 提升「抄襲」與「侵占創意」的出現頻率
       { text: "抄襲剽竊他人資料還想出書", type: "evil" },
+      { text: "抄襲剽竊他人資料還想出書", type: "evil" },
+      { text: "抄襲剽竊他人資料還想出書", type: "evil" },
+      { text: "將他人的創意據為己有還口出惡言", type: "evil" },
+      { text: "將他人的創意據為己有還口出惡言", type: "evil" },
       { text: "將他人的創意據為己有還口出惡言", type: "evil" },
       { text: "路怒逼車甚至撞人", type: "evil" },
       { text: "利用職權公務貪污", type: "evil" },
@@ -515,13 +519,12 @@
         }, 120);
 
       } else {
-        // 答錯邏輯：直接扣 150 分，且凍結 1 秒（1000ms）
         score -= 150;
         scoreDisplay.textContent = score;
 
         actionCard.classList.add('flash-evil');
 
-        // 啟動 1 秒強制凍結
+        // 答錯凍結 1 秒
         isLocked = true;
         goodBtn.classList.add('btn-disabled');
         evilBtn.classList.add('btn-disabled');
@@ -531,7 +534,7 @@
           goodBtn.classList.remove('btn-disabled');
           evilBtn.classList.remove('btn-disabled');
           nextQuestion();
-        }, 1000); // 凍結 1 秒
+        }, 1000); 
       }
     }
 
