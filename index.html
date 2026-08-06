@@ -188,6 +188,13 @@
     .flash-evil {
       border-color: var(--evil-color) !important;
       box-shadow: 0 0 25px var(--evil-color) !important;
+      animation: shakeCard 0.4s ease-in-out;
+    }
+
+    @keyframes shakeCard {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-12px); }
+      40%, 80% { transform: translateX(12px); }
     }
 
     /* 操作按鈕區 */
@@ -234,9 +241,10 @@
 
     /* 答錯懲罰鎖定樣式 */
     .btn-disabled {
-      opacity: 0.3 !important;
+      opacity: 0.2 !important;
+      cursor: not-allowed !important;
+      filter: grayscale(100%) !important;
       pointer-events: none !important;
-      filter: grayscale(100%);
     }
 
     /* 頁尾落款 */
@@ -348,7 +356,7 @@
       <p id="overlay-desc">
         世人一舉一動，城隍爺大算盤皆有明細。<br>
         限時 60 秒，請迅速判斷世間行為之「善」與「惡」。<br><br>
-        <b>警告：亂按盲猜將受到審判凍結與扣分！</b><br><br>
+        <b>⚠️ 審判警告：盲猜狂按將扣 150 分並凍結 1 秒！</b><br><br>
         <b>操作說明：</b><br>
         手機點擊下方按鈕，或使用鍵盤 <b>⬅️ 善</b> / <b>惡 ➡️</b> 鍵。
       </p>
@@ -409,7 +417,7 @@
     let timer = null;
     let currentAction = null;
     let isPlaying = false;
-    let isLocked = false; // 答錯懲罰鎖定狀態
+    let isLocked = false; 
     let questionDeck = [];
 
     const scoreDisplay = document.getElementById('score-display');
@@ -445,46 +453,20 @@
       const gain = audioCtx.createGain();
 
       osc.type = 'triangle';
-      const startFreq = isCorrect ? 320 : 120;
+      const startFreq = isCorrect ? 320 : 100;
       const endFreq = isCorrect ? 80 : 30;
 
       osc.frequency.setValueAtTime(startFreq, now);
-      osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.1);
+      osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.12);
 
       gain.gain.setValueAtTime(1.0, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
       osc.connect(gain);
       gain.connect(audioCtx.destination);
 
       osc.start(now);
-      osc.stop(now + 0.1);
-
-      const bufferSize = audioCtx.sampleRate * 0.04;
-      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1;
-      }
-
-      const whiteNoise = audioCtx.createBufferSource();
-      whiteNoise.buffer = noiseBuffer;
-
-      const noiseFilter = audioCtx.createBiquadFilter();
-      noiseFilter.type = 'bandpass';
-      noiseFilter.frequency.setValueAtTime(isCorrect ? 1200 : 400, now);
-      noiseFilter.Q.setValueAtTime(2.0, now);
-
-      const noiseGain = audioCtx.createGain();
-      noiseGain.gain.setValueAtTime(0.8, now);
-      noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
-
-      whiteNoise.connect(noiseFilter);
-      noiseFilter.connect(noiseGain);
-      noiseGain.connect(audioCtx.destination);
-
-      whiteNoise.start(now);
-      whiteNoise.stop(now + 0.04);
+      osc.stop(now + 0.12);
     }
 
     function shuffleDeck() {
@@ -524,20 +506,22 @@
 
       if (isCorrect) {
         score += 100;
+        scoreDisplay.textContent = score;
         actionCard.classList.add(choice === 'good' ? 'swipe-left' : 'swipe-right');
         actionCard.classList.add('flash-good');
-        scoreDisplay.textContent = score;
 
         setTimeout(() => {
           nextQuestion();
         }, 120);
 
       } else {
-        // 答錯懲罰：直接扣 150 分，且凍結按鈕 500ms（防止連續盲按）
-        score = Math.max(0, score - 150);
+        // 答錯邏輯：直接扣 150 分，且凍結 1 秒（1000ms）
+        score -= 150;
         scoreDisplay.textContent = score;
+
         actionCard.classList.add('flash-evil');
 
+        // 啟動 1 秒強制凍結
         isLocked = true;
         goodBtn.classList.add('btn-disabled');
         evilBtn.classList.add('btn-disabled');
@@ -547,7 +531,7 @@
           goodBtn.classList.remove('btn-disabled');
           evilBtn.classList.remove('btn-disabled');
           nextQuestion();
-        }, 500); // 答錯懲罰凍結 0.5 秒
+        }, 1000); // 凍結 1 秒
       }
     }
 
@@ -585,14 +569,14 @@
         comment = "【超凡入聖】<br>火眼金睛，善惡極速判決！城隍爺考慮請你當首席大判官！";
       } else if (score >= 1800) {
         comment = "【光明磊落】<br>善惡分明，心如明鏡！城隍爺賜你福德圓滿、平安大吉。";
-      } else if (score >= 1200) {
+      } else if (score >= 1000) {
         comment = "【積善之家】<br>大體精準，明辨是非！多行善事，子孫必有餘慶。";
-      } else if (score >= 600) {
+      } else if (score >= 400) {
         comment = "【尚可改進】<br>世事紛擾，偶有失察。回去多讀聖賢書，下回再試！";
-      } else if (score >= 200) {
+      } else if (score >= 0) {
         comment = "【糊塗判官】<br>黑白不分，亂按盲猜！差點把善人當惡人給判了！";
       } else {
-        comment = "【無間地獄】<br>顛倒黑白，罪加一等！速速去城隍爺面前跪著懺悔！";
+        comment = "【無間地獄】<br>顛倒黑白，亂猜一通！分數竟為負數，速速去城隍爺面前跪著懺悔！";
       }
 
       overlayTitle.textContent = "審判結束";
