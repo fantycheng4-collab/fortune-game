@@ -111,7 +111,6 @@
       transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    /* 加大顆的算盤珠 */
     .bead {
       width: 22px;
       height: 22px;
@@ -120,7 +119,6 @@
       box-shadow: 2px 2px 4px rgba(0,0,0,0.8), inset -1px -1px 2px rgba(0,0,0,0.5);
     }
 
-    /* 算盤珠晃動動畫 class */
     .bead-shake {
       animation: abacusBounce 0.2s ease-in-out;
     }
@@ -213,7 +211,7 @@
       flex-direction: column;
       align-items: center;
       gap: 4px;
-      transition: transform 0.1s, filter 0.2s;
+      transition: transform 0.1s, filter 0.2s, opacity 0.2s;
     }
 
     .btn:active {
@@ -232,6 +230,13 @@
       font-size: 0.8rem;
       color: var(--gold-main);
       opacity: 0.8;
+    }
+
+    /* 答錯懲罰鎖定樣式 */
+    .btn-disabled {
+      opacity: 0.3 !important;
+      pointer-events: none !important;
+      filter: grayscale(100%);
     }
 
     /* 頁尾落款 */
@@ -297,12 +302,10 @@
 <body>
 
   <div class="game-container">
-    <!-- 爾來了匾額 -->
     <div class="plaque">
       <div class="plaque-title">爾來了</div>
     </div>
 
-    <!-- 加大版大算盤意象 -->
     <div class="abacus" id="abacus-box">
       <div class="abacus-row">
         <div class="abacus-wire"></div>
@@ -318,18 +321,15 @@
       </div>
     </div>
 
-    <!-- 狀態欄 -->
     <div class="stats-bar">
       <div>倒數：<span id="time-display">60</span> 秒</div>
       <div>功過得分：<span id="score-display">0</span></div>
     </div>
 
-    <!-- 行為卡片區 -->
     <div class="card-area">
       <div class="action-card" id="action-card">準備判定...</div>
     </div>
 
-    <!-- 操作按鈕區 -->
     <div class="controls">
       <button class="btn btn-good" id="good-btn">
         <span>⬅️ 善</span>
@@ -341,15 +341,14 @@
       </button>
     </div>
 
-    <!-- 底部製作人標示 -->
     <div class="footer-credits">臺灣府城隍廟志工小V 敬製</div>
 
-    <!-- 開始/結算 覆蓋畫面 -->
     <div class="overlay" id="overlay">
       <h2 id="overlay-title">爾來了！善惡大判官</h2>
       <p id="overlay-desc">
         世人一舉一動，城隍爺大算盤皆有明細。<br>
         限時 60 秒，請迅速判斷世間行為之「善」與「惡」。<br><br>
+        <b>警告：亂按盲猜將受到審判凍結與扣分！</b><br><br>
         <b>操作說明：</b><br>
         手機點擊下方按鈕，或使用鍵盤 <b>⬅️ 善</b> / <b>惡 ➡️</b> 鍵。
       </p>
@@ -359,7 +358,6 @@
   </div>
 
   <script>
-    // 完整題庫 (善惡各 20 項，共 40 題)
     const rawActionDatabase = [
       // 善 (type: 'good') - 共 20 項
       { text: "拾金不昧送到警局", type: "good" },
@@ -406,15 +404,14 @@
       { text: "偷竊廟宇香油錢", type: "evil" }
     ];
 
-    // 遊戲狀態變數
     let score = 0;
     let timeLeft = 60;
     let timer = null;
     let currentAction = null;
     let isPlaying = false;
-    let questionDeck = []; // 洗牌牌組 (徹底防重複)
+    let isLocked = false; // 答錯懲罰鎖定狀態
+    let questionDeck = [];
 
-    // DOM 元素
     const scoreDisplay = document.getElementById('score-display');
     const timeDisplay = document.getElementById('time-display');
     const actionCard = document.getElementById('action-card');
@@ -428,7 +425,6 @@
     const beads2 = document.getElementById('beads-2');
     const abacusBox = document.getElementById('abacus-box');
 
-    // Web Audio API：高品質真實厚重「木頭算盤撞擊聲」合成器
     let audioCtx = null;
 
     function initAudio() {
@@ -440,35 +436,31 @@
       }
     }
 
-    // 模擬實木算珠重擊敲擊聲
     function playWoodThud(isCorrect) {
       initAudio();
       if (!audioCtx) return;
 
       const now = audioCtx.currentTime;
-
-      // 產生低沉沉穩的木頭主頻聲 (低音敲擊)
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
 
-      osc.type = 'triangle'; // 三角波帶有較強的木質感
-      const startFreq = isCorrect ? 320 : 180;
-      const endFreq = isCorrect ? 80 : 40;
+      osc.type = 'triangle';
+      const startFreq = isCorrect ? 320 : 120;
+      const endFreq = isCorrect ? 80 : 30;
 
       osc.frequency.setValueAtTime(startFreq, now);
-      osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.08);
+      osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.1);
 
       gain.gain.setValueAtTime(1.0, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
 
       osc.connect(gain);
       gain.connect(audioCtx.destination);
 
       osc.start(now);
-      osc.stop(now + 0.09);
+      osc.stop(now + 0.1);
 
-      // 疊加木質撞擊瞬間的短促雜音聲 (Wood Crack)
-      const bufferSize = audioCtx.sampleRate * 0.03;
+      const bufferSize = audioCtx.sampleRate * 0.04;
       const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
       const output = noiseBuffer.getChannelData(0);
       for (let i = 0; i < bufferSize; i++) {
@@ -480,22 +472,21 @@
 
       const noiseFilter = audioCtx.createBiquadFilter();
       noiseFilter.type = 'bandpass';
-      noiseFilter.frequency.setValueAtTime(isCorrect ? 1200 : 600, now);
+      noiseFilter.frequency.setValueAtTime(isCorrect ? 1200 : 400, now);
       noiseFilter.Q.setValueAtTime(2.0, now);
 
       const noiseGain = audioCtx.createGain();
-      noiseGain.gain.setValueAtTime(0.7, now);
-      noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.03);
+      noiseGain.gain.setValueAtTime(0.8, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
 
       whiteNoise.connect(noiseFilter);
       noiseFilter.connect(noiseGain);
       noiseGain.connect(audioCtx.destination);
 
       whiteNoise.start(now);
-      whiteNoise.stop(now + 0.03);
+      whiteNoise.stop(now + 0.04);
     }
 
-    // 洗牌算法 (Fisher-Yates Shuffle)，徹底消除重複
     function shuffleDeck() {
       questionDeck = [...rawActionDatabase];
       for (let i = questionDeck.length - 1; i > 0; i--) {
@@ -504,19 +495,15 @@
       }
     }
 
-    // 抽下一題 (抽完一輪才會重新洗牌，保證 40 題出完前零重複)
     function nextQuestion() {
       if (questionDeck.length === 0) {
         shuffleDeck();
       }
-
       currentAction = questionDeck.pop();
-
       actionCard.textContent = currentAction.text;
       actionCard.className = 'action-card';
     }
 
-    // 算盤珠位移與晃動動畫
     function animateAbacus() {
       const shift1 = (Math.random() - 0.5) * 80;
       const shift2 = (Math.random() - 0.5) * 80;
@@ -528,12 +515,10 @@
       abacusBox.classList.add('bead-shake');
     }
 
-    // 玩家判定邏輯
     function judge(choice) {
-      if (!isPlaying) return;
+      if (!isPlaying || isLocked) return;
 
       const isCorrect = (choice === currentAction.type);
-      
       playWoodThud(isCorrect);
       animateAbacus();
 
@@ -541,29 +526,43 @@
         score += 100;
         actionCard.classList.add(choice === 'good' ? 'swipe-left' : 'swipe-right');
         actionCard.classList.add('flash-good');
+        scoreDisplay.textContent = score;
+
+        setTimeout(() => {
+          nextQuestion();
+        }, 120);
+
       } else {
-        score = Math.max(0, score - 50);
+        // 答錯懲罰：直接扣 150 分，且凍結按鈕 500ms（防止連續盲按）
+        score = Math.max(0, score - 150);
+        scoreDisplay.textContent = score;
         actionCard.classList.add('flash-evil');
+
+        isLocked = true;
+        goodBtn.classList.add('btn-disabled');
+        evilBtn.classList.add('btn-disabled');
+
+        setTimeout(() => {
+          isLocked = false;
+          goodBtn.classList.remove('btn-disabled');
+          evilBtn.classList.remove('btn-disabled');
+          nextQuestion();
+        }, 500); // 答錯懲罰凍結 0.5 秒
       }
-
-      scoreDisplay.textContent = score;
-
-      setTimeout(() => {
-        nextQuestion();
-      }, 140);
     }
 
-    // 開始遊戲
     function startGame() {
       initAudio();
       score = 0;
       timeLeft = 60;
       isPlaying = true;
+      isLocked = false;
+      goodBtn.classList.remove('btn-disabled');
+      evilBtn.classList.remove('btn-disabled');
       scoreDisplay.textContent = score;
       timeDisplay.textContent = timeLeft;
 
       shuffleDeck();
-
       overlay.classList.add('hidden');
       nextQuestion();
 
@@ -577,22 +576,21 @@
       }, 1000);
     }
 
-    // 結束遊戲與評語
     function endGame() {
       clearInterval(timer);
       isPlaying = false;
 
       let comment = "";
-      if (score >= 3500) {
+      if (score >= 2500) {
         comment = "【超凡入聖】<br>火眼金睛，善惡極速判決！城隍爺考慮請你當首席大判官！";
-      } else if (score >= 2500) {
-        comment = "【光明磊落】<br>善惡分明，心如明鏡！城隍爺賜你福德圓滿、平安大吉。";
       } else if (score >= 1800) {
+        comment = "【光明磊落】<br>善惡分明，心如明鏡！城隍爺賜你福德圓滿、平安大吉。";
+      } else if (score >= 1200) {
         comment = "【積善之家】<br>大體精準，明辨是非！多行善事，子孫必有餘慶。";
-      } else if (score >= 1000) {
+      } else if (score >= 600) {
         comment = "【尚可改進】<br>世事紛擾，偶有失察。回去多讀聖賢書，下回再試！";
-      } else if (score >= 400) {
-        comment = "【糊塗判官】<br>黑白不分，糊里糊塗！差點把善人當惡人給判了！";
+      } else if (score >= 200) {
+        comment = "【糊塗判官】<br>黑白不分，亂按盲猜！差點把善人當惡人給判了！";
       } else {
         comment = "【無間地獄】<br>顛倒黑白，罪加一等！速速去城隍爺面前跪著懺悔！";
       }
@@ -603,13 +601,12 @@
       overlay.classList.remove('hidden');
     }
 
-    // 事件監聽
     goodBtn.addEventListener('click', () => judge('good'));
     evilBtn.addEventListener('click', () => judge('evil'));
     startBtn.addEventListener('click', startGame);
 
     window.addEventListener('keydown', (e) => {
-      if (!isPlaying) return;
+      if (!isPlaying || isLocked) return;
       if (e.key === 'ArrowLeft') {
         judge('good');
       } else if (e.key === 'ArrowRight') {
